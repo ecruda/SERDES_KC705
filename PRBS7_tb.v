@@ -23,6 +23,18 @@ module PRBS7_tb;
 
 wire clk1280;
 wire [7:0] prbs;
+
+
+// ---------------- Instantiate clock module -------------------------------
+
+/*clk_wiz_0 clk_wiz_0_inst_1
+(
+    .clk_out1(clk_wiz_out),     //160 MHz
+    .locked(locked),
+    .reset(reset),
+    .clk_in1(sysclk)
+);*/
+
 //----------------- Instantiate an gtwizard_0_exdes module  -----------------
 
 gtwizard_0_exdes gtwizard_0_exdes_i
@@ -43,12 +55,17 @@ gtwizard_0_exdes gtwizard_0_exdes_i
 );
 wire [31:0] TXP_OUT;
 wire [31:0] TXN_OUT;
+
+
+
+
 diff_in   #(.WORDWIDTH(32)) diff_in_inst1
 (
     .sig_in_p(TXP_OUT),
     .sig_in_n(TXN_OUT),
     .clk(TX_clk),           //needs clk from tx ip, fast
-    .sig_out(word),  
+    .sig_out(word), 
+    (* mark_debug = "true" *) 
     .err(err)    //error when 1, no err when 0
 );
 wire err;
@@ -61,12 +78,13 @@ diff_out   #(.WORDWIDTH(32)) diff_out_inst1
         .sig_out_p(RXP_IN),
         .sig_out_n(RXN_IN)        
     );
-PRBS7 #(.WORDWIDTH(8)) prbs1Inst
+PRBS7 #(.WORDWIDTH(32)) prbs1Inst
     (
         .clk(sysclk),
         .reset(reset),
         .dis(1'b0),
         .seed(7'H7F),
+        (* mark_debug = "true" *)
         .prbs(prbs)
     ); 
 
@@ -102,10 +120,19 @@ dataExtract dataAligner
     .reset(reset2),
     .din(word),
     .aligned(aligned),
+
+    (* mark_debug = "true" *)
     .errorCount(errorCount),
     .dout(decodedData)
 );
 
+
+ila_0 ila (
+.clk(sysclk),
+.probe0(probe0),
+.probe1(probe1),
+.probe2(probe2)
+);
     initial begin
         clk1024 = 0;
         sysclk = 0;
@@ -123,7 +150,7 @@ dataExtract dataAligner
     always 
         #0.050 clk1024 = ~clk1024; //100 ps clock period, not exactly 10.24 GHz
     always
-        #0.400 sysclk = ~sysclk;
+        #0.400 sysclk = ~sysclk;    //1.25 GHz
     always 
-        #1.6 recClk = ~recClk;
+        #1.6 recClk = ~recClk;      //312.5 MHz
 endmodule
