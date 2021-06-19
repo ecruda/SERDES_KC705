@@ -131,7 +131,7 @@ dataExtract dataAligner
 );
 
 
-ila_0 ila (
+ila_0 ila ( 
 .clk(gt0_rxusrclk2_i),
 .probe0(probe0),
 .probe1(probe1),
