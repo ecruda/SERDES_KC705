@@ -16,7 +16,7 @@
 
 module PRBS7_top(
     input   reset,
-    input   reset2,
+//    input   reset2,
     input   SMA_MGT_REFCLK_P,
     input   SMA_MGT_REFCLK_N,
     input   DRP_CLK_IN_P,
@@ -26,16 +26,30 @@ module PRBS7_top(
     output  TXP_OUT,
     output  TXN_OUT
     );
-
+wire [31:0] gt0_rxdata_i;
+wire [31:0] gt0_txdata_i;
+wire gt0_txusrclk2_i;
+wire gt0_rxusrclk2_i;
+reg [29:0]cnt=30'b0;
+reg [29:0] In_reg;
+wire [29:0] DataScrambled;
 PRBS7 #(.WORDWIDTH(32)) prbs1Inst
     (
+        //in
         .clk(gt0_txusrclk2_i),
         .reset(reset),
         .dis(1'b0),
         .seed(7'H7F),
         (* mark_debug = "true" *)
-        .prbs(prbs)
+        
+        //out
+        .prbs(gt0_txdata_i)
     ); 
+    
+/*PRBS_debug PRBS_debug_inst0(
+	.clk(gt0_txusrclk2_i),
+	.prbs_out(gt0_txdata_i)
+	);*/
 
 
 /*diff_out   #(.WORDWIDTH(32)) diff_out_inst1
@@ -60,8 +74,8 @@ PRBS7 #(.WORDWIDTH(32)) prbs1Inst
 //wire gt0_txusrclk2_i;
 gtwizard_0_exdes gtwizard_0_exdes_i
 (
-    .Q0_CLK1_GTREFCLK_PAD_N_IN(SMA_MGT_REFCLK_N), 
-    .Q0_CLK1_GTREFCLK_PAD_P_IN(SMA_MGT_REFCLK_P),
+    .Q2_CLK1_GTREFCLK_PAD_N_IN(SMA_MGT_REFCLK_N), 
+    .Q2_CLK1_GTREFCLK_PAD_P_IN(SMA_MGT_REFCLK_P),
     .DRP_CLK_IN_P(DRP_CLK_IN_P),
     .DRP_CLK_IN_N(DRP_CLK_IN_N),
     .TRACK_DATA_OUT("open"),//(track_data_i),
@@ -69,10 +83,10 @@ gtwizard_0_exdes gtwizard_0_exdes_i
     .RXP_IN(RXP_IN),
     .TXN_OUT(TXN_OUT),
     .TXP_OUT(TXP_OUT),
-    .gt0_rxdata_i(word),
-    .gt0_txdata_i(prbs),
-    .gt0_txusrclk2_i( gt0_txusrclk2_i),
-    .gt0_rxusrclk2_i( gt0_rxusrclk2_i)
+    .gt0_rxdata_i(gt0_rxdata_i),    //out
+    .gt0_txdata_i(gt0_txdata_i),    //in
+    .gt0_txusrclk2_i( gt0_txusrclk2_i), //out       
+    .gt0_rxusrclk2_i( gt0_rxusrclk2_i)  //out
 );
 
 //wire gt0_rxusrclk2_i;
@@ -118,11 +132,12 @@ gtwizard_0_exdes gtwizard_0_exdes_i
 wire aligned;
 wire [5:0] errorCount;
 wire [31:0] decodedData;
+
 dataExtract dataAligner
 (
     .clk(gt0_rxusrclk2_i),
     .reset(reset2),
-    .din(word),
+    .din(gt0_rxdata_i),
     .aligned(aligned),
 
     (* mark_debug = "true" *)
@@ -130,12 +145,20 @@ dataExtract dataAligner
     .dout(decodedData)
 );
 
-
-ila_0 ila ( 
+wire [160:0] TRIG0;
+ila_0 ila (
+.clk(gt0_rxusrclk2_i),
+.probe0(TRIG0)
+);
+assign TRIG0[31:0] = gt0_txdata_i;
+assign TRIG0[63:32] = gt0_rxdata_i;
+assign TRIG0[95:64] = errorCount;
+assign TRIG0[160:96] = 64'b0;
+/*ila_0 ila ( 
 .clk(gt0_rxusrclk2_i),
 .probe0(probe0),
 .probe1(probe1),
 .probe2(probe2)
-);
+);*/
 
 endmodule

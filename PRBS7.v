@@ -25,6 +25,7 @@ module PRBS7 #(parameter WORDWIDTH = 16)
 
     wire [6:0] c [WORDWIDTH:0]; //chain for iteration
     reg [6:0] r;
+   
     always @(posedge clk) 
     begin
         if(!dis)
