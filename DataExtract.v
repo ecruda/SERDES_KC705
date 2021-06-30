@@ -16,12 +16,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 module dataExtract
 (
-	input           clk,            //40MHz
+	input           clk,            
     input           reset,
-    input [31:0]    din,
+    input   [31:0]  din,
+
+    output  [3:0]   foundFrames,
+    output  [8:0]   searchedFrames,
+    output  [4:0]   alignAddr,        
     output          aligned,  
-    output [5:0]    errorCount, 
-	output [31:0]   dout
+    output  [5:0]   errorCount, 
+	output  [31:0]  dout
 );
 
     reg [63:0] dataBuf;
@@ -83,7 +87,7 @@ module dataExtract
                 else
                 begin
                     searchedFrames <= searchedFrames + 1;
-                    if(searchedFrames > 9'd32)
+                    if(searchedFrames > 9'd127)
                     begin
                         searchedFrames <= 9'h000;
                         foundFrames <= 4'h0;
@@ -102,7 +106,7 @@ module dataExtract
                     if(errorCount > 6'd6)begin
                         searchedFrames <= searchedFrames + 1;
                     end
-                    if(searchedFrames > 9'd32 )
+                    if(searchedFrames > 9'd127 )
                     begin
                         searchedFrames <= 9'h000;
                         failureTimes <= failureTimes + 1;
