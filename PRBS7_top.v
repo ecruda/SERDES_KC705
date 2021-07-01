@@ -59,25 +59,24 @@ PRBS_debug PRBS_debug_inst0(
 	.prbs_out(gt0_txdata_i)
 	);
 
+PRBS7Check prbs_source_check_inst_0(
+  .clk(gt0_txusrclk2_i),
+  .din(gt0_txdata_i),
+  .prbs(prbs_from_check_to_check_source),
+  .errorCounter(errorCount_to_check_source)
+    );
+ (* mark_debug = "true" *)  
+wire  [5:0]   errorCount_to_check_source;
+(* mark_debug = "true" *)
+wire [31:0]   prbs_from_check_to_check_source;
 
-// reg [31:0] serIn;
-// //serializer map
-// always @(posedge gt0_txusrclk2_i) begin
-//     generate
-//         genvar i;
-//         for (i = 0 ; i < 4; i= i+1 )
-//         begin
-//             serIn[0+i*8] <= prbs[7+i*8];
-//             serIn[4+i*8] <= prbs[6+i*8];
-//             serIn[1+i*8] <= prbs[5+i*8];
-//             serIn[5+i*8] <= prbs[4+i];
-//             serIn[2+i*8] <= prbs[3+i];
-//             serIn[6+i*8] <= prbs[2+i];
-//             serIn[3+i*8] <= prbs[1+i];
-//             serIn[7+i*8] <= prbs[0+i];         
-//         end
-//     endgenerate
-// end
+
+map map_inst(
+    .din(gt0_txdata_i),
+    .dout(map_dout)
+);
+(* mark_debug = "true" *)
+wire     [31:0]  map_dout;
 
 /*diff_out   #(.WORDWIDTH(32)) diff_out_inst1
     (
@@ -113,7 +112,7 @@ gtwizard_0_exdes gtwizard_0_exdes_i
 //    (* mark_debug = "true" *)
     .gt0_rxdata_i(gt0_rxdata_i),    //out
 //    (* mark_debug = "true" *)
-    .gt0_txdata_i(gt0_txdata_i),    //in
+    .gt0_txdata_i(map_dout),    //in
     .gt0_txusrclk2_i( gt0_txusrclk2_i), //out       
     .gt0_rxusrclk2_i( gt0_rxusrclk2_i)  //out
 );
@@ -158,7 +157,13 @@ gtwizard_0_exdes gtwizard_0_exdes_i
     .dout(word)
 ); */
 
-
+/*rev_map rev_map_inst(
+    .clk(gt0_rxusrclk2_i),
+    .din(gt0_rxdata_i),
+    .dout(rev_map_dout)
+);*/
+(* mark_debug = "true" *)
+wire     [31:0]     rev_map_dout;
 
 
 dataExtract dataAligner
@@ -166,15 +171,17 @@ dataExtract dataAligner
     //Input
     .clk(gt0_rxusrclk2_i),
     .reset(reset),
-    .din(gt0_rxdata_i),
+    .din(rev_map_dout),
     
     //Output
     .foundFrames(foundFrames),
     .searchedFrames(searchedFrames),
     .alignAddr(alignAddr),
     .aligned(aligned),
-    .errorCount(errorCount),
-    .dout(decodedData)
+    .errorCounter(errorCounter),
+    .errorFlag(errorFlag),
+    .prbs_from_check(prbs_from_check),
+    .dout(dout)
 );
 (* mark_debug = "true" *)
 wire  [3:0]   foundFrames;
@@ -185,9 +192,13 @@ wire  [4:0]   alignAddr;
 (* mark_debug = "true" *)        
 wire          aligned;
 (* mark_debug = "true" *)  
-wire  [5:0]   errorCount;
+wire  [5:0]   errorCounter;
 (* mark_debug = "true" *)
-wire [31:0] decodedData;
+wire          errorFlag;
+(* mark_debug = "true" *)
+wire [31:0]   prbs_from_check;
+(* mark_debug = "true" *)
+wire [31:0] dout;
 /*wire [160:0] TRIG0;
 ila_0 ila (
 .clk(gt0_rxusrclk2_i),

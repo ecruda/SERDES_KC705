@@ -18,6 +18,8 @@ module PRBS7Check
 (
 	input                   clk,            //40MHz
 	input [31:0]   din,
+    output  [31:0]  prbs,
+    output  [31:0]  errorBits,
     output [5:0]    errorCounter           //error flag if it is not prbs7
 );
     reg [6:0] r;

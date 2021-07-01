@@ -24,7 +24,10 @@ module dataExtract
     output  [8:0]   searchedFrames,
     output  [4:0]   alignAddr,        
     output          aligned,  
-    output  [5:0]   errorCount, 
+    output  [5:0]   errorCounter, 
+    output          errorFlag,
+    output  [31:0]  prbs_from_check, 
+    output  [31:0]  errorBits,
 	output  [31:0]  dout
 );
 
@@ -43,26 +46,38 @@ module dataExtract
 
     reg [4:0] alignAddr;
 
+
+    wire [31:0] raw_dout;
     generate
         genvar i;
         for (i = 0 ; i < 32; i= i+1 )
         begin
-            assign  dout[i] = dataBuf[alignAddr+i];
+            assign  raw_dout[i] = dataBuf[alignAddr+i];
         end    
     endgenerate
+
+    rev_map rev_map_inst(
+    .din(raw_dout),
+    .dout(dout)
+    );
+
 
     PRBS7Check prbsCKInst
     (
         .clk(clk),
         .din(dout),
-        .errorCounter(errorCount)
+        .prbs(prbs_from_check),
+        .errorCounter(errorCounter),
+        .errorBits(errorBits)
     );
 
-    wire errorFlag = (errorCount != 6'h00);
+wire [31:0] errorBits;
+//    reg [31:0] prbs_from_check;
+    wire errorFlag = (errorCounter != 6'h00);
 
     always @(posedge clk) 
     begin
-        if(!reset)
+        if(reset)
         begin
             foundFrames     <= 4'h0;
             failureTimes    <= 4'h0;
@@ -103,7 +118,8 @@ module dataExtract
                 end
                 else 
                 begin
-                    if(errorCount > 6'd6)begin
+                    if(errorCounter > 6'd0)
+                    begin
                         searchedFrames <= searchedFrames + 1;
                     end
                     if(searchedFrames > 9'd127 )
