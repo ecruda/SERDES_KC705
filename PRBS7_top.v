@@ -161,17 +161,17 @@ gtwizard_0_exdes gtwizard_0_exdes_i
     .clk(gt0_rxusrclk2_i),
     .din(gt0_rxdata_i),
     .dout(rev_map_dout)
-);*/
+);
 (* mark_debug = "true" *)
-wire     [31:0]     rev_map_dout;
-
+wire     [31:0]     gt0_rxdata_i;
+*/
 
 dataExtract dataAligner
 (
     //Input
     .clk(gt0_rxusrclk2_i),
     .reset(reset),
-    .din(rev_map_dout),
+    .din(gt0_rxdata_i),
     
     //Output
     .foundFrames(foundFrames),
@@ -181,6 +181,7 @@ dataExtract dataAligner
     .errorCounter(errorCounter),
     .errorFlag(errorFlag),
     .prbs_from_check(prbs_from_check),
+    .errorBits(errorBits),
     .dout(dout)
 );
 (* mark_debug = "true" *)
@@ -197,6 +198,8 @@ wire  [5:0]   errorCounter;
 wire          errorFlag;
 (* mark_debug = "true" *)
 wire [31:0]   prbs_from_check;
+(* mark_debug = "true" *)
+wire [31:0]   errorBits;
 (* mark_debug = "true" *)
 wire [31:0] dout;
 /*wire [160:0] TRIG0;
