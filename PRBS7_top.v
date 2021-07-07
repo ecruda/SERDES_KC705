@@ -72,9 +72,14 @@ wire [31:0]   prbs_from_check_to_check_source;
 
 
 map map_inst(
+    .clk(gt0_txusrclk2_i),
+    .bypass(bypass),
     .din(gt0_txdata_i),
     .dout(map_dout)
 );
+assign bypass = 1'b0;   
+(* mark_debug = "true" *)
+wire bypass;
 (* mark_debug = "true" *)
 wire     [31:0]  map_dout;
 
@@ -172,13 +177,15 @@ dataExtract dataAligner
     .clk(gt0_rxusrclk2_i),
     .reset(reset),
     .din(gt0_rxdata_i),
-    
+    .bypass(bypass),
+
     //Output
     .foundFrames(foundFrames),
     .searchedFrames(searchedFrames),
     .alignAddr(alignAddr),
     .aligned(aligned),
     .errorCounter(errorCounter),
+    .tot_err_count(tot_err_count),
     .errorFlag(errorFlag),
     .prbs_from_check(prbs_from_check),
     .errorBits(errorBits),
@@ -194,6 +201,8 @@ wire  [4:0]   alignAddr;
 wire          aligned;
 (* mark_debug = "true" *)  
 wire  [5:0]   errorCounter;
+(* mark_debug = "true" *)  
+wire  [24:0]    tot_err_count;
 (* mark_debug = "true" *)
 wire          errorFlag;
 (* mark_debug = "true" *)

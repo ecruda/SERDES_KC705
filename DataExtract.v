@@ -19,12 +19,14 @@ module dataExtract
 	input           clk,            
     input           reset,
     input   [31:0]  din,
+    input           bypass,
 
     output  [3:0]   foundFrames,
     output  [8:0]   searchedFrames,
     output  [4:0]   alignAddr,        
     output          aligned,  
     output  [5:0]   errorCounter, 
+    output  [24:0]  tot_err_count,
     output          errorFlag,
     output  [31:0]  prbs_from_check, 
     output  [31:0]  errorBits,
@@ -47,20 +49,30 @@ module dataExtract
     reg [4:0] alignAddr;
 
 
-    wire [31:0] raw_dout;
+    reg [31:0] raw_dout;
+    wire [31:0] raw_net;
+
     generate
         genvar i;
         for (i = 0 ; i < 32; i= i+1 )
         begin
-            assign  raw_dout[i] = dataBuf[alignAddr+i];
+            assign  raw_net[i] = dataBuf[alignAddr+i];
         end    
     endgenerate
 
+    always @(posedge clk) 
+    begin
+        raw_dout <= raw_net;
+    end
+
     rev_map rev_map_inst(
     .din(raw_dout),
+    .clk(clk),
+    .bypass(bypass),
     .dout(dout)
     );
 
+wire bypass;
 
     PRBS7Check prbsCKInst
     (
@@ -135,5 +147,15 @@ wire [31:0] errorBits;
                 end
             end
         end
+    end
+
+
+
+
+reg [24:0] tot_err_count;
+
+always @ (posedge clk)
+    begin
+        tot_err_count <= tot_err_count +errorCounter;
     end
 endmodule
