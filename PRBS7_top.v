@@ -125,7 +125,15 @@ gtwizard_0_exdes gtwizard_0_exdes_i
 //wire gt0_rxusrclk2_i;
 
 
+shifter shifter_inst(
+    .clk(gt0_txusrclk2_i),
+    .bypass(bypass),
+    .din(map_dout),
+    .dout(shifter_dout)
+    );
 
+(* mark_debug = "true" *)
+wire [31:0] shifter_dout;
 /*diff_in   #(.WORDWIDTH(32)) diff_in_inst1
 (
     .sig_in_p(TXP_OUT),
@@ -177,6 +185,7 @@ dataExtract dataAligner
     .clk(gt0_rxusrclk2_i),
     .reset(reset),
     .din(gt0_rxdata_i),
+    // .din(shifter_dout),
     .bypass(bypass),
 
     //Output

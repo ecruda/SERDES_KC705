@@ -35,6 +35,8 @@ module dataExtract
 
     reg [63:0] dataBuf;
     always @(posedge clk) 
+//    always @(negedge clk) 
+
     begin
         dataBuf[63:32]  <=  din;
         dataBuf[31:0] <= dataBuf[63:32];
