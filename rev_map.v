@@ -15,18 +15,28 @@
 
 
 module rev_map(
-input	[31:0]	din,
+// input	[31:0]	din,
+input   [63:0]  din,
+
 input           clk,
 input           bypass,
-output	reg [31:0]	dout
+// output	reg [31:0]	dout
+output  reg [63:0]  dout
+
 );
 
-wire [31:0] by0;
-wire [31:0] by1;
+// wire [31:0] by0;
+wire [63:0] by0;
+
+// wire [31:0] by1;
+wire [63:0] by1;
+
 
      generate
             genvar i;
-            for (i = 0 ; i < 4; i= i+1 )
+            // for (i = 0 ; i < 4; i= i+1 )
+            for (i = 0 ; i < 8; i= i+1 )
+
             begin: loop_itr
                 assign  by0[0+i*8] = din[7+i*8];//reverse mapping
                 assign  by0[4+i*8] = din[6+i*8];

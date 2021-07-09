@@ -16,7 +16,9 @@
 
 module PRBS_debug(
 	input clk,
-	output reg [31:0] prbs_out
+	// output reg [31:0] prbs_out
+	output reg [63:0] prbs_out
+
 	);
 
 // reg [126:0] prbs71=127'b0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010;
@@ -25,13 +27,20 @@ module PRBS_debug(
 reg [126:0] prbs71=127'b1111111010101001100111011101001011000110111101101011011001001000111000010111110010101110011010001001111000101000011000001000000;// PRBS created from right to left, b0^b1==b7
 
 
-reg [31:0] dframe;
+// reg [31:0] dframe;
+reg [63:0] dframe;
 
 always @(posedge clk) begin
 	
-		prbs71[126:0] <= { prbs71[31:0],prbs71[126:32]};
-		dframe[31:0] <= prbs71[31:0];
-		prbs_out[31:0] <= dframe[31:0];
+		// prbs71[126:0] <= { prbs71[31:0],prbs71[126:32]};
+		prbs71[126:0] <= { prbs71[63:0],prbs71[126:64]};
+
+		// dframe[31:0] <= prbs71[31:0];
+		dframe[63:0] <= prbs71[63:0];
+		
+		// prbs_out[31:0] <= dframe[31:0];
+		prbs_out[63:0] <= dframe[63:0];
+
 end
 
 

@@ -18,45 +18,82 @@ module dataExtract
 (
 	input           clk,            
     input           reset,
-    input   [31:0]  din,
+    // input   [31:0]  din,
+    input   [63:0]  din,
+
     input           bypass,
 
     output  [3:0]   foundFrames,
+    // output  [7:0]   foundFrames,
+
     output  [8:0]   searchedFrames,
-    output  [4:0]   alignAddr,        
-    output          aligned,  
-    output  [5:0]   errorCounter, 
+    // output  [17:0]   searchedFrames,
+
+    // output  [4:0]   alignAddr,
+    output  [5:0]   alignAddr,        
+
+    output          aligned,
+
+    output  [6:0]   errorCounter, 
+    // output  [11:0]   errorCounter, 
+    
     output  [24:0]  tot_err_count,
+    // output  [49:0]  tot_err_count,
+    
     output          errorFlag,
-    output  [31:0]  prbs_from_check, 
-    output  [31:0]  errorBits,
-	output  [31:0]  dout
+    
+    // output  [31:0]  prbs_from_check, 
+    output  [63:0]  prbs_from_check, 
+    
+    // output  [31:0]  errorBits,
+    output  [63:0]  errorBits,
+	
+    // output  [31:0]  dout
+    output  [63:0]  dout
+
 );
 
-    reg [63:0] dataBuf;
+    // reg [63:0] dataBuf;
+    reg [127:0] dataBuf;
+
     always @(posedge clk) 
 //    always @(negedge clk) 
 
     begin
-        dataBuf[63:32]  <=  din;
-        dataBuf[31:0] <= dataBuf[63:32];
+        // dataBuf[63:32]  <=  din;
+        dataBuf[127:64]  <=  din;
+
+        // dataBuf[31:0] <= dataBuf[63:32];
+        dataBuf[63:0] <= dataBuf[127:64];
+
     end
 
+    // reg [3:0] foundFrames; //found header id in 256 data records.
     reg [3:0] foundFrames; //found header id in 256 data records.
+
+    // reg [8:0] searchedFrames; //if do not find a id in 256 data records, move on
     reg [8:0] searchedFrames; //if do not find a id in 256 data records, move on
+    
+    // reg [3:0] failureTimes; //failureTimes after synched. 
     reg [3:0] failureTimes; //failureTimes after synched. 
+    
     reg synched;            //synched status or not
     assign aligned = synched;
 
-    reg [4:0] alignAddr;
+    // reg [4:0] alignAddr;
+    reg [5:0] alignAddr;
 
 
-    reg [31:0] raw_dout;
-    wire [31:0] raw_net;
+    // reg [31:0] raw_dout;
+    reg [63:0] raw_dout;
+
+    // wire [31:0] raw_net;
+    wire [63:0] raw_net;
+
 
     generate
         genvar i;
-        for (i = 0 ; i < 32; i= i+1 )
+        for (i = 0 ; i < 64; i= i+1 )
         begin
             assign  raw_net[i] = dataBuf[alignAddr+i];
         end    
@@ -85,19 +122,30 @@ wire bypass;
         .errorBits(errorBits)
     );
 
-wire [31:0] errorBits;
-//    reg [31:0] prbs_from_check;
+// wire [31:0] errorBits;
+wire [63:0] errorBits;
+
     wire errorFlag = (errorCounter != 6'h00);
+    // wire errorFlag = (errorCounter != 12'h00);
 
     always @(posedge clk) 
     begin
         if(reset)
         begin
             foundFrames     <= 4'h0;
+            // foundFrames     <= 8'h0;
+
             failureTimes    <= 4'h0;
+            // failureTimes    <= 8'h0;
+            
             synched         <= 1'b0;
-            alignAddr       <= 5'h00;
+            
+            // alignAddr       <= 5'h00;
+            alignAddr       <= 6'h00;
+            
             searchedFrames  <= 9'h000;
+            // searchedFrames  <= 18'h000;
+
         end
         else
         begin

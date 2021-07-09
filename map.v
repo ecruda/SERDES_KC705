@@ -17,18 +17,27 @@
 module map(
 input			      clk,
 input                 bypass,
-input	     [31:0]	  din,
-output	 reg [31:0]	  dout
+// input	     [31:0]	  din,
+input        [63:0]   din,
+
+// output	 reg [31:0]	  dout
+output   reg [63:0]   dout
+
 );
 
-/*wire [31:0] din;
-reg [31:0] dout;*/
-wire [31:0] by0;
-wire [31:0] by1;
+
+// wire [31:0] by0;
+wire [63:0] by0;
+
+// wire [31:0] by1;
+wire [63:0] by1;
+
 
 generate
             genvar i;
-            for (i = 0 ; i < 4; i= i+1 )
+            // for (i = 0 ; i < 4; i= i+1 )
+            for (i = 0 ; i < 8; i= i+1 )
+
             begin: loop_itr
                 assign  by0[7+i*8] = din[0+i*8];//mapping
                 assign  by0[6+i*8] = din[4+i*8];

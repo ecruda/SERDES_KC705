@@ -28,15 +28,18 @@ module PRBS7_top(
     );
     
 (* mark_debug = "true" *)
-wire [31:0] gt0_rxdata_i;
+ wire [63:0] gt0_rxdata_i;
+// wire [31:0] gt0_rxdata_i;
 (* mark_debug = "true" *)
-wire [31:0] gt0_txdata_i;
+wire [63:0] gt0_txdata_i;
+// wire [31:0] gt0_txdata_i;
 wire gt0_txusrclk2_i;
 (* mark_debug = "true" *)
 wire gt0_rxusrclk2_i;
-reg [29:0]cnt=30'b0;
-reg [29:0] In_reg;
-wire [29:0] DataScrambled;
+
+// reg [29:0]cnt=30'b0;
+// reg [29:0] In_reg;
+// wire [29:0] DataScrambled;
 
 
 /*PRBS7 #(.WORDWIDTH(32)) prbs1Inst
@@ -52,7 +55,9 @@ wire [29:0] DataScrambled;
         .prbs(gt0_txdata_i)
     ); */
 
-wire [31:0] prbs32;    
+// wire [31:0] prbs32;   
+wire [63:0] prbs32;    
+
 PRBS_debug PRBS_debug_inst0(
 	.clk(gt0_txusrclk2_i),
 	(* mark_debug = "true" *)
@@ -66,9 +71,12 @@ PRBS7Check prbs_source_check_inst_0(
   .errorCounter(errorCount_to_check_source)
     );
  (* mark_debug = "true" *)  
-wire  [5:0]   errorCount_to_check_source;
+wire  [6:0]   errorCount_to_check_source;
+// wire  [11:0]   errorCount_to_check_source;
+
 (* mark_debug = "true" *)
-wire [31:0]   prbs_from_check_to_check_source;
+// wire [31:0]   prbs_from_check_to_check_source;
+wire [63:0]   prbs_from_check_to_check_source;
 
 
 map map_inst(
@@ -81,7 +89,8 @@ assign bypass = 1'b0;
 (* mark_debug = "true" *)
 wire bypass;
 (* mark_debug = "true" *)
-wire     [31:0]  map_dout;
+// wire     [31:0]  map_dout;
+wire     [63:0]  map_dout;
 
 /*diff_out   #(.WORDWIDTH(32)) diff_out_inst1
     (
@@ -133,7 +142,9 @@ shifter shifter_inst(
     );
 
 (* mark_debug = "true" *)
-wire [31:0] shifter_dout;
+wire [63:0] shifter_dout;
+// wire [31:0] shifter_dout;
+
 /*diff_in   #(.WORDWIDTH(32)) diff_in_inst1
 (
     .sig_in_p(TXP_OUT),
@@ -201,25 +212,43 @@ dataExtract dataAligner
     .dout(dout)
 );
 (* mark_debug = "true" *)
+// wire  [7:0]   foundFrames;
 wire  [3:0]   foundFrames;
+
 (* mark_debug = "true" *)
+// wire  [17:0]   searchedFrames;
 wire  [8:0]   searchedFrames;
+
 (* mark_debug = "true" *)
-wire  [4:0]   alignAddr;
+wire  [5:0]   alignAddr;
+// wire  [4:0]   alignAddr;
+
 (* mark_debug = "true" *)        
 wire          aligned;
+
 (* mark_debug = "true" *)  
-wire  [5:0]   errorCounter;
+// wire  [11:0]   errorCounter;
+wire  [6:0]   errorCounter;
+
 (* mark_debug = "true" *)  
+// wire  [49:0]    tot_err_count;
 wire  [24:0]    tot_err_count;
+
 (* mark_debug = "true" *)
 wire          errorFlag;
+
 (* mark_debug = "true" *)
-wire [31:0]   prbs_from_check;
+wire [63:0]   prbs_from_check;
+// wire [31:0]   prbs_from_check;
+
 (* mark_debug = "true" *)
-wire [31:0]   errorBits;
+wire [63:0]   errorBits;
+// wire [31:0]   errorBits;
+
 (* mark_debug = "true" *)
-wire [31:0] dout;
+wire [63:0] dout;
+// wire [31:0] dout;
+
 /*wire [160:0] TRIG0;
 ila_0 ila (
 .clk(gt0_rxusrclk2_i),
