@@ -104,7 +104,8 @@ module dataExtract
         raw_dout <= raw_net;
     end
 
-    rev_map rev_map_inst(
+  //  rev_map rev_map_inst(
+    map map_inst(
     .din(raw_dout),
     .clk(clk),
     .bypass(bypass),
@@ -203,9 +204,23 @@ wire [63:0] errorBits;
 
 
 reg [24:0] tot_err_count;
-
+reg firstAligned;
 always @ (posedge clk)
+    if(reset)
+    begin
+        firstAligned <= 1'b0;
+        tot_err_count <= 25'd0;
+    end
+    else 
+    begin
+    if(aligned == 1'b1 && firstAligned ==1'b0)
+    begin
+        firstAligned <= 1'b1;
+    end
+    if(firstAligned)
     begin
         tot_err_count <= tot_err_count +errorCounter;
     end
+end 
+
 endmodule

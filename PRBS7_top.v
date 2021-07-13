@@ -78,8 +78,8 @@ wire  [6:0]   errorCount_to_check_source;
 // wire [31:0]   prbs_from_check_to_check_source;
 wire [63:0]   prbs_from_check_to_check_source;
 
-
-map map_inst(
+rev_map rev_map_inst(
+// map map_inst(
     .clk(gt0_txusrclk2_i),
     .bypass(bypass),
     .din(gt0_txdata_i),
