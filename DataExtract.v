@@ -37,7 +37,7 @@ module dataExtract
     output  [6:0]   errorCounter, 
     // output  [11:0]   errorCounter, 
     
-    output  [24:0]  tot_err_count,
+    output  [23:0]  tot_err_count,
     // output  [49:0]  tot_err_count,
     
     output          errorFlag,
@@ -203,13 +203,13 @@ wire [63:0] errorBits;
 
 
 
-reg [24:0] tot_err_count;
+reg [23:0] tot_err_count;
 reg firstAligned;
 always @ (posedge clk)
     if(reset)
     begin
         firstAligned <= 1'b0;
-        tot_err_count <= 25'd0;
+        tot_err_count <= 24'd0;
     end
     else 
     begin
