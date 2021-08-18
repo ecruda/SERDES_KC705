@@ -16,37 +16,32 @@
 //////////////////////////////////////////////////////////////////////////////////
 module PRBS7Check
 (
-	input                   clk,            //40MHz
-	// input [31:0]   din,
-    input [63:0]   din,
+	input                       clk,            
+    input           [63:0]      din,
+    input           [15:0]      mask,
+    input                       reset,
+    input           [6:0]       seed,
 
-    // output  reg [31:0]  prbs,
-    output  reg [63:0]  prbs,
-    
-    // output  [31:0]  errorBits,
-    output  [63:0]  errorBits,
-    
-    // output [5:0]    errorCounter           //error flag if it is not prbs7
-    output [6:0]    errorCounter           //error flag if it is not prbs7
+    output         [63:0]      prbs,
+    output          [63:0]      errorBits,
+    output          [6:0]       errorCounter           //error flag if it is not prbs7
 
 );
-    reg [6:0] r;
+    
+
+   /* reg [6:0] r;
     always @(posedge clk) 
     begin
-        // r <= din[31:32-7];  //only keep the last 7 bits
+
         r <= din[63:64-7];  //only keep the last 7 bits
 
     end
-
-    // wire [6:0] c [32:0]; //chain for iteration
+    
     wire [6:0] c [64:0]; //chain for iteration
-
-    // wire [31 : 0] prbsNet;
     wire [63 : 0] prbsNet;
 
     generate
         genvar i;
-        // for (i = 0 ; i < 32; i = i + 1)
         for (i = 0 ; i < 64; i = i + 1)
         begin : loop_itr
             assign prbsNet[i] = c[i][1]^c[i][0];            
@@ -54,13 +49,29 @@ module PRBS7Check
         end
     endgenerate
     assign c[0] = r;
+    */
+    wire [6:0] seed;
+    /*PRBS7 #(.WORDWIDTH(64)) prbs1Inst
+    (
+        .clk(clk),
+        .reset(reset),
+        .dis(1'b0),
+        .seed(seed),
+        .prbs(prbs)
+    ); */
+    
+    PRBS_debug PRBS_debug_inst0(
+	.clk(clk),
+	(* mark_debug = "true" *)
+	.prbs_out(prbs)
+	);
+    
+//    wire [63:0]    prbs;
 
-    // reg [31:0] errorBits;
     reg [63:0] errorBits;
-
-    // reg [31:0] din1D;
     reg [63:0] din1D;
     
+
     reg [6:0] c0 [15:0];
     reg [6:0] c1 [7:0];
     reg [6:0] c2 [3:0];
@@ -70,8 +81,10 @@ module PRBS7Check
     always @(posedge clk)
     begin
         din1D <= din;
-        prbs <= prbsNet;
-        errorBits <= prbs ^ din1D;
+//        prbs <= prbsNet;
+        // errorBits <= prbs ^ din1D;
+        errorBits <= prbs ^ din1D & {~mask, ~mask, ~mask, ~mask};
+
         c0[0] <= {5'd0,errorBits[0]}+
                  {5'd0,errorBits[1]}+
                  {5'd0,errorBits[2]}+

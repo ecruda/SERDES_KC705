@@ -18,76 +18,55 @@ module dataExtract
 (
 	input           clk,            
     input           reset,
-    // input   [31:0]  din,
     input   [63:0]  din,
-
     input           bypass,
+    input   [15:0]  mask,
+    input   [6:0]   seed,
+
 
     output  [3:0]   foundFrames,
-    // output  [7:0]   foundFrames,
-
     output  [8:0]   searchedFrames,
-    // output  [17:0]   searchedFrames,
-
-    // output  [4:0]   alignAddr,
-    output  [5:0]   alignAddr,        
-
+    // output  [5:0]   alignAddr,  
+    output  [9:0]   alignAddr,    //10 bits 
     output          aligned,
-
     output  [6:0]   errorCounter, 
-    // output  [11:0]   errorCounter, 
-    
     output  [23:0]  tot_err_count,
-    // output  [49:0]  tot_err_count,
-    
     output          errorFlag,
-    
-    // output  [31:0]  prbs_from_check, 
     output  [63:0]  prbs_from_check, 
-    
-    // output  [31:0]  errorBits,
     output  [63:0]  errorBits,
-	
-    // output  [31:0]  dout
     output  [63:0]  dout
 
 );
 
     // reg [63:0] dataBuf;
-    reg [127:0] dataBuf;
-
+    reg [1079:0] dataBuf;
+////////////////NEEDS TO CHANGE//////////////////
     always @(posedge clk) 
 //    always @(negedge clk) 
 
     begin
         // dataBuf[63:32]  <=  din;
-        dataBuf[127:64]  <=  din;
+        dataBuf[1079:1015]  <=  din;
 
         // dataBuf[31:0] <= dataBuf[63:32];
-        dataBuf[63:0] <= dataBuf[127:64];
+        dataBuf[1015:0] <= dataBuf[1079:64];
 
     end
+////////////////NEEDS TO CHANGE//////////////////
 
-    // reg [3:0] foundFrames; //found header id in 256 data records.
+
+
     reg [3:0] foundFrames; //found header id in 256 data records.
 
-    // reg [8:0] searchedFrames; //if do not find a id in 256 data records, move on
     reg [8:0] searchedFrames; //if do not find a id in 256 data records, move on
     
-    // reg [3:0] failureTimes; //failureTimes after synched. 
     reg [3:0] failureTimes; //failureTimes after synched. 
     
     reg synched;            //synched status or not
     assign aligned = synched;
 
-    // reg [4:0] alignAddr;
-    reg [5:0] alignAddr;
-
-
-    // reg [31:0] raw_dout;
+    reg [9:0] alignAddr;
     reg [63:0] raw_dout;
-
-    // wire [31:0] raw_net;
     wire [63:0] raw_net;
 
 
@@ -113,11 +92,15 @@ module dataExtract
     );
 
 wire bypass;
-
+wire [6:0] seed;
     PRBS7Check prbsCKInst
     (
         .clk(clk),
         .din(dout),
+        .mask(mask),
+        .reset(reset),
+        .seed(seed),
+
         .prbs(prbs_from_check),
         .errorCounter(errorCounter),
         .errorBits(errorBits)
@@ -134,18 +117,14 @@ wire [63:0] errorBits;
         if(reset)
         begin
             foundFrames     <= 4'h0;
-            // foundFrames     <= 8'h0;
 
             failureTimes    <= 4'h0;
-            // failureTimes    <= 8'h0;
             
             synched         <= 1'b0;
             
-            // alignAddr       <= 5'h00;
-            alignAddr       <= 6'h00;
+            alignAddr       <= 5'h00;
             
             searchedFrames  <= 9'h000;
-            // searchedFrames  <= 18'h000;
 
         end
         else

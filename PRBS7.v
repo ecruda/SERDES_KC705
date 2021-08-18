@@ -20,7 +20,7 @@ module PRBS7 #(parameter WORDWIDTH = 16)
 	input           reset,         //
 	input           dis,          //
     input [6:0]     seed,   
-	output [WORDWIDTH-1:0]    prbs
+	output [WORDWIDTH-1:0]     prbs
 );
 
     wire [6:0] c [WORDWIDTH:0]; //chain for iteration
@@ -37,7 +37,8 @@ module PRBS7 #(parameter WORDWIDTH = 16)
             else 
             begin
                 r <= c[WORDWIDTH];
-            end            
+            end  
+//            r <= seed;          
         end
     end
 

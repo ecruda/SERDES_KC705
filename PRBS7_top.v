@@ -16,15 +16,11 @@
 
 module PRBS7_top(
     input   SYS_RST,
-//    input   reset2,
     input   SMA_MGT_REFCLK_P,
     input   SMA_MGT_REFCLK_N,
-//    input   DRP_CLK_IN_P,
-//    input   DRP_CLK_IN_N,
     input   RXP_IN,
     input   RXN_IN,
     output  TXP_OUT,
-    
     input wire SYS_CLK_P,            //system clock 200MHz
     input wire SYS_CLK_N,
     input wire SGMIICLK_Q0_P,        //125MHz for GTP/GTH/GTX  for 1G Ethernet interface
@@ -49,33 +45,11 @@ module PRBS7_top(
     
 (* mark_debug = "true" *)
  wire [63:0] gt0_rxdata_i;
-// wire [31:0] gt0_rxdata_i;
 (* mark_debug = "true" *)
 wire [63:0] gt0_txdata_i;
-// wire [31:0] gt0_txdata_i;
 wire gt0_txusrclk2_i;
 (* mark_debug = "true" *)
-wire gt0_rxusrclk2_i;
-
-// reg [29:0]cnt=30'b0;
-// reg [29:0] In_reg;
-// wire [29:0] DataScrambled;
-
-
-/*PRBS7 #(.WORDWIDTH(32)) prbs1Inst
-    (
-        //in
-        .clk(gt0_txusrclk2_i),
-        .reset(reset),
-        .dis(1'b0),
-        .seed(7'H7F),
-        (* mark_debug = "true" *)
-        
-        //out
-        .prbs(gt0_txdata_i)
-    ); */
-
-// wire [31:0] prbs32;   
+wire gt0_rxusrclk2_i; 
 wire [63:0] prbs32;    
 
 PRBS_debug PRBS_debug_inst0(
@@ -83,7 +57,16 @@ PRBS_debug PRBS_debug_inst0(
 	(* mark_debug = "true" *)
 	.prbs_out(gt0_txdata_i)
 	);
-
+	
+/*PRBS7 #(.WORDWIDTH(64)) prbs1Inst
+    (
+        .clk(gt0_txusrclk2_i),
+        .reset(reset),
+        .dis(1'b0),
+        .seed(seed),
+        .prbs(gt0_txdata_i)
+    ); 
+*/
 PRBS7Check prbs_source_check_inst_0(
   .clk(gt0_txusrclk2_i),
   .din(gt0_txdata_i),
@@ -92,10 +75,8 @@ PRBS7Check prbs_source_check_inst_0(
     );
  (* mark_debug = "true" *)  
 wire  [6:0]   errorCount_to_check_source;
-// wire  [11:0]   errorCount_to_check_source;
 
 (* mark_debug = "true" *)
-// wire [31:0]   prbs_from_check_to_check_source;
 wire [63:0]   prbs_from_check_to_check_source;
 
 rev_map rev_map_inst(
@@ -109,7 +90,6 @@ assign bypass = 1'b0;
 (* mark_debug = "true" *)
 wire bypass;
 (* mark_debug = "true" *)
-// wire     [31:0]  map_dout;
 wire     [63:0]  map_dout;
 
 /*diff_out   #(.WORDWIDTH(32)) diff_out_inst1
@@ -144,72 +124,15 @@ gtwizard_0_exdes gtwizard_0_exdes_i
     .RXP_IN(RXP_IN),
     .TXN_OUT(TXN_OUT),
     .TXP_OUT(TXP_OUT),
-//    (* mark_debug = "true" *)
     .gt0_rxdata_i(gt0_rxdata_i),    //out
-//    (* mark_debug = "true" *)
     .gt0_txdata_i(map_dout),    //in
     .gt0_txusrclk2_i( gt0_txusrclk2_i), //out       
     .gt0_rxusrclk2_i( gt0_rxusrclk2_i)  //out
 );
 
-//wire gt0_rxusrclk2_i;
-
-
-shifter shifter_inst(
-    .clk(gt0_txusrclk2_i),
-    .bypass(bypass),
-    .din(map_dout),
-    .dout(shifter_dout)
-    );
-
 (* mark_debug = "true" *)
 wire [63:0] shifter_dout;
-// wire [31:0] shifter_dout;
 
-/*diff_in   #(.WORDWIDTH(32)) diff_in_inst1
-(
-    .sig_in_p(TXP_OUT),
-    .sig_in_n(TXN_OUT),
-    .clk(gt0_rxusrclk2_i),           //needs clk from tx ip, fast
-    .sig_out(word), 
-    (* mark_debug = "true" *) 
-    .err(err)    //error when 1, no err when 0
-);*/
-
-
-
-
-// wire sout;
-/*Serializer #(.WORDWIDTH(8)) serInst
-(
-    .reset(reset),
-    .enable(1'b1),
-    .bitCK(clk1024),
-    .clk1280(clk1280),
-    .din(prbs),
-    .sout(sout)
-); */
-    
-// wire wordCK;
-
-/*deserializer #(.WORDWIDTH(32),.WIDTH(6)) desrInst
-(
-    .bitCK(clk1024),
-    .reset(reset2),
-    .delay(6'h0),
-    .sin(sout),
-    .wordCK(wordCK),
-    .dout(word)
-); */
-
-/*rev_map rev_map_inst(
-    .clk(gt0_rxusrclk2_i),
-    .din(gt0_rxdata_i),
-    .dout(rev_map_dout)
-);
-(* mark_debug = "true" *)
-wire     [31:0]     gt0_rxdata_i;
-*/
 
 dataExtract dataAligner
 (
@@ -219,6 +142,8 @@ dataExtract dataAligner
     .din(gt0_rxdata_i),
     // .din(shifter_dout),
     .bypass(bypass),
+    .mask(mask),
+    .seed(seed),
 
     //Output
     .foundFrames(foundFrames),
@@ -232,27 +157,39 @@ dataExtract dataAligner
     .errorBits(errorBits),
     .dout(dout)
 );
+/*shifter shifter_inst0(
+    .clk(gt0_rxusrclk2_i),
+    .bypass(bypass),
+    .din(prbs_from_check_test),
+//    .dout(shifter_dout)
+    .dout(prbs_from_check)
+
+    );*/
+
+//assign mask = 16'h0000;
+assign seed = 7'h3F;
+
+wire [15:0] mask;
+
+wire [6:0] seed;
+
+
 (* mark_debug = "true" *)
-// wire  [7:0]   foundFrames;
 wire  [3:0]   foundFrames;
 
 (* mark_debug = "true" *)
-// wire  [17:0]   searchedFrames;
 wire  [8:0]   searchedFrames;
 
 (* mark_debug = "true" *)
-wire  [5:0]   alignAddr;
-// wire  [4:0]   alignAddr;
+wire  [9:0]   alignAddr;
 
 (* mark_debug = "true" *)        
 wire          aligned;
 
 (* mark_debug = "true" *)  
-// wire  [11:0]   errorCounter;
 wire  [6:0]   errorCounter;
 
 (* mark_debug = "true" *)  
-// wire  [49:0]    tot_err_count;
 wire  [23:0]    tot_err_count;
 
 (* mark_debug = "true" *)
@@ -260,26 +197,12 @@ wire          errorFlag;
 
 (* mark_debug = "true" *)
 wire [63:0]   prbs_from_check;
-// wire [31:0]   prbs_from_check;
 
 (* mark_debug = "true" *)
 wire [63:0]   errorBits;
-// wire [31:0]   errorBits;
 
 (* mark_debug = "true" *)
 wire [63:0] dout;
-// wire [31:0] dout;
-
-/*wire [160:0] TRIG0;
-ila_0 ila (
-.clk(gt0_rxusrclk2_i),
-.probe0(TRIG0)
-);
-assign TRIG0[31:0] = gt0_txdata_i;
-assign TRIG0[63:32] = gt0_rxdata_i;
-assign TRIG0[95:64] = errorCount;
-assign TRIG0[160:96] = 64'b0;*/
-
 
 //---------------------------------------------------------< global_clock_reset
 wire reset;
@@ -533,8 +456,8 @@ reg [23:0] tot_err_count_test;
 
 always @ (channel_select)
 begin
-//    Channel_Bit_Error_Output_reg = tot_err_count;
-    Channel_Bit_Error_Output_reg = tot_err_count_test;
+    Channel_Bit_Error_Output_reg = tot_err_count;
+//    Channel_Bit_Error_Output_reg = tot_err_count_test;
 
 end
 assign status_reg[79:16] = Channel_Bit_Error_Output_reg;
@@ -556,5 +479,11 @@ assign channel_select = config_reg[2:0];
 //Channel_Bit_Error_Output_reg = tot_err_count + Rx0_Error_bit_Init;
 
 //---------------------------------------------------------> Rx Bit_error readout
+//---------------------------------------------------------< VIO 
 
+vio_0 vio_0_inst (
+  .clk(clk_60MHz),                // input wire clk
+  .probe_out0(mask)  
+);
+//---------------------------------------------------------> VIO 
 endmodule
