@@ -55,8 +55,29 @@ wire [63:0] prbs32;
 PRBS_debug PRBS_debug_inst0(
 	.clk(gt0_txusrclk2_i),
 	(* mark_debug = "true" *)
-	.prbs_out(gt0_txdata_i)
+	.prbs_out(gt0_txdata_i_pre_shifter0)
 	);
+	
+	
+wire [63:0] gt0_txdata_i_pre_shifter0;
+wire [63:0] gt0_txdata_i_pre_shifter1;
+
+
+shifter shifter_inst0(
+    .clk(gt0_txusrclk2_i),
+    .bypass(bypass),
+    .din(gt0_txdata_i_pre_shifter0),
+//    .dout(shifter_dout)
+    .dout(gt0_txdata_i_pre_shifter1)
+    );
+shifter shifter_inst1(
+    .clk(gt0_txusrclk2_i),
+    .bypass(bypass),
+    .din(gt0_txdata_i_pre_shifter1),
+//    .dout(shifter_dout)
+    .dout(gt0_txdata_i)
+    );
+
 	
 /*PRBS7 #(.WORDWIDTH(64)) prbs1Inst
     (
@@ -70,6 +91,9 @@ PRBS_debug PRBS_debug_inst0(
 PRBS7Check prbs_source_check_inst_0(
   .clk(gt0_txusrclk2_i),
   .din(gt0_txdata_i),
+  .mask(mask),
+  .seed(seed),
+  
   .prbs(prbs_from_check_to_check_source),
   .errorCounter(errorCount_to_check_source)
     );

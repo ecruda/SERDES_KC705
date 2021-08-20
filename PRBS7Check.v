@@ -29,7 +29,7 @@ module PRBS7Check
 );
     
 
-   /* reg [6:0] r;
+    reg [6:0] r;
     always @(posedge clk) 
     begin
 
@@ -49,7 +49,7 @@ module PRBS7Check
         end
     endgenerate
     assign c[0] = r;
-    */
+    
     wire [6:0] seed;
     /*PRBS7 #(.WORDWIDTH(64)) prbs1Inst
     (
@@ -60,13 +60,13 @@ module PRBS7Check
         .prbs(prbs)
     ); */
     
-    PRBS_debug PRBS_debug_inst0(
+    /*PRBS_debug PRBS_debug_inst0(
 	.clk(clk),
 	(* mark_debug = "true" *)
 	.prbs_out(prbs)
-	);
+	);*/
     
-//    wire [63:0]    prbs;
+    reg [63:0]    prbs;
 
     reg [63:0] errorBits;
     reg [63:0] din1D;
@@ -81,9 +81,11 @@ module PRBS7Check
     always @(posedge clk)
     begin
         din1D <= din;
-//        prbs <= prbsNet;
+        prbs <= prbsNet;
         // errorBits <= prbs ^ din1D;
         errorBits <= prbs ^ din1D & {~mask, ~mask, ~mask, ~mask};
+//         errorBits <= prbs ^ din1D ;
+
 
         c0[0] <= {5'd0,errorBits[0]}+
                  {5'd0,errorBits[1]}+

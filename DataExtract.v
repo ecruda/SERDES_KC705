@@ -39,21 +39,26 @@ module dataExtract
 );
 
     // reg [63:0] dataBuf;
-    reg [1079:0] dataBuf;
-////////////////NEEDS TO CHANGE//////////////////
+//    reg [1079:0] dataBuf;
+        
+        reg [127:0] dataBuf;
+        
     always @(posedge clk) 
 //    always @(negedge clk) 
 
     begin
         // dataBuf[63:32]  <=  din;
-        dataBuf[1079:1015]  <=  din;
+//        dataBuf[1079:1015]  <=  din;
+        dataBuf[127:64] <= din;
 
+        dataBuf[63:0] <= dataBuf[127:64];
         // dataBuf[31:0] <= dataBuf[63:32];
-        dataBuf[1015:0] <= dataBuf[1079:64];
-
+//        dataBuf[1015:0] <= dataBuf[1079:64];
+        
+        
     end
-////////////////NEEDS TO CHANGE//////////////////
 
+    
 
 
     reg [3:0] foundFrames; //found header id in 256 data records.
