@@ -20,20 +20,26 @@ module dataExtract
     input           reset,
     input   [63:0]  din,
     input           bypass,
-    input   [15:0]  mask,
+    input   wire [15:0]  mask,
     input   [6:0]   seed,
 
 
     output  [3:0]   foundFrames,
     output  [8:0]   searchedFrames,
-    // output  [5:0]   alignAddr,  
-    output  [9:0]   alignAddr,    //10 bits 
+     output  [5:0]   alignAddr,  
+//    output  [9:0]   alignAddr,    //10 bits 
     output          aligned,
     output  [6:0]   errorCounter, 
     output  [23:0]  tot_err_count,
     output          errorFlag,
     output  [63:0]  prbs_from_check, 
     output  [63:0]  errorBits,
+    output  [63:0]  userBits,
+    output  [63:0]  userdataBits,
+    output  [63:0]  usererrorBits,
+    output  [7:0]   userData,
+    output  [6:0]   usererrorCounter,
+    
     output  [63:0]  dout
 
 );
@@ -70,7 +76,7 @@ module dataExtract
     reg synched;            //synched status or not
     assign aligned = synched;
 
-    reg [9:0] alignAddr;
+    reg [5:0] alignAddr;
     reg [63:0] raw_dout;
     wire [63:0] raw_net;
 
@@ -98,6 +104,10 @@ module dataExtract
 
 wire bypass;
 wire [6:0] seed;
+wire [15:0] mask;
+wire errorFlag;
+
+assign alignedAddr = alignAddr;
     PRBS7Check prbsCKInst
     (
         .clk(clk),
@@ -105,11 +115,21 @@ wire [6:0] seed;
         .mask(mask),
         .reset(reset),
         .seed(seed),
-
+      
+        .userBits(userBits),
+        .usererrorBits(usererrorBits),
+        .usererrorCounter(usererrorCounter),
+        
         .prbs(prbs_from_check),
         .errorCounter(errorCounter),
+        .userData(userData),
+        .errorFlag(errorFlag),
         .errorBits(errorBits)
     );
+
+wire [7:0]  userData;
+wire [63:0] userBits;
+wire [63:0] usererrorBits;
 
 // wire [31:0] errorBits;
 wire [63:0] errorBits;
@@ -150,6 +170,8 @@ wire [63:0] errorBits;
                 begin
                     searchedFrames <= searchedFrames + 1;
                     if(searchedFrames > 9'd127)
+//                    if(searchedFrames > 9'd63)
+
                     begin
                         searchedFrames <= 9'h000;
                         foundFrames <= 4'h0;
@@ -170,6 +192,7 @@ wire [63:0] errorBits;
                         searchedFrames <= searchedFrames + 1;
                     end
                     if(searchedFrames > 9'd127 )
+//                    if(searchedFrames > 9'd63 )
                     begin
                         searchedFrames <= 9'h000;
                         failureTimes <= failureTimes + 1;
@@ -186,7 +209,7 @@ wire [63:0] errorBits;
 
 
 
-
+//firsAligned algorithm
 reg [23:0] tot_err_count;
 reg firstAligned;
 always @ (posedge clk)
@@ -206,5 +229,15 @@ always @ (posedge clk)
         tot_err_count <= tot_err_count +errorCounter;
     end
 end 
+
+//user_data_error_checking algorithm
+
+/*reg [63:0] userdataBits;
+always @ (posedge clk)
+   
+    if(aligned == 1'b1 && errorCounter == 7'h00)
+        begin
+            userdataBits <= userBits & {mask,mask,mask,mask};
+        end*/
 
 endmodule

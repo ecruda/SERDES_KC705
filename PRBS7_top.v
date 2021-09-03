@@ -55,7 +55,8 @@ wire [63:0] prbs32;
 PRBS_debug PRBS_debug_inst0(
 	.clk(gt0_txusrclk2_i),
 	(* mark_debug = "true" *)
-	.prbs_out(gt0_txdata_i_pre_shifter0)
+//	.prbs_out(gt0_txdata_i_pre_shifter0)
+    .prbs_out(gt0_txdata_i)
 	);
 	
 	
@@ -63,7 +64,7 @@ wire [63:0] gt0_txdata_i_pre_shifter0;
 wire [63:0] gt0_txdata_i_pre_shifter1;
 
 
-shifter shifter_inst0(
+/*shifter shifter_inst0(
     .clk(gt0_txusrclk2_i),
     .bypass(bypass),
     .din(gt0_txdata_i_pre_shifter0),
@@ -76,7 +77,7 @@ shifter shifter_inst1(
     .din(gt0_txdata_i_pre_shifter1),
 //    .dout(shifter_dout)
     .dout(gt0_txdata_i)
-    );
+    );*/
 
 	
 /*PRBS7 #(.WORDWIDTH(64)) prbs1Inst
@@ -110,7 +111,7 @@ rev_map rev_map_inst(
     .din(gt0_txdata_i),
     .dout(map_dout)
 );
-assign bypass = 1'b0;   
+//assign bypass = 1'b0;   
 (* mark_debug = "true" *)
 wire bypass;
 (* mark_debug = "true" *)
@@ -179,6 +180,11 @@ dataExtract dataAligner
     .errorFlag(errorFlag),
     .prbs_from_check(prbs_from_check),
     .errorBits(errorBits),
+    .userBits(userBits),
+    .usererrorBits(usererrorBits),
+    .userdataBits(userdataBits),
+    .userData(userData),
+    .usererrorCounter(usererrorCounter),
     .dout(dout)
 );
 /*shifter shifter_inst0(
@@ -193,6 +199,11 @@ dataExtract dataAligner
 //assign mask = 16'h0000;
 assign seed = 7'h3F;
 
+
+(* mark_debug = "true" *)
+wire [7:0] userData;
+
+(* mark_debug = "true" *)
 wire [15:0] mask;
 
 wire [6:0] seed;
@@ -224,6 +235,18 @@ wire [63:0]   prbs_from_check;
 
 (* mark_debug = "true" *)
 wire [63:0]   errorBits;
+
+(* mark_debug = "true" *)
+wire [63:0]     usererrorBits;
+
+(* mark_debug = "true" *)
+wire [63:0]     userdataBits;
+
+(* mark_debug = "true" *)
+wire [6:0]     usererrorCounter;
+
+(* mark_debug = "true" *)
+wire [63:0]   userBits;
 
 (* mark_debug = "true" *)
 wire [63:0] dout;
@@ -507,7 +530,10 @@ assign channel_select = config_reg[2:0];
 
 vio_0 vio_0_inst (
   .clk(clk_60MHz),                // input wire clk
-  .probe_out0(mask)  
+  .probe_out0(mask),  
+  .probe_out1(bypass)
 );
+
+//assign mask = 16'h8000;
 //---------------------------------------------------------> VIO 
 endmodule
