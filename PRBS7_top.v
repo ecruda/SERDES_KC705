@@ -15,7 +15,7 @@
 
 
 module PRBS7_top(
-    input   SYS_RST,
+//    input   SYS_RST,
     input   SMA_MGT_REFCLK_P,
     input   SMA_MGT_REFCLK_N,
     input   RXP_IN,
@@ -55,40 +55,10 @@ wire [63:0] prbs32;
 PRBS_debug PRBS_debug_inst0(
 	.clk(gt0_txusrclk2_i),
 	(* mark_debug = "true" *)
-//	.prbs_out(gt0_txdata_i_pre_shifter0)
     .prbs_out(gt0_txdata_i)
 	);
 	
-	
-wire [63:0] gt0_txdata_i_pre_shifter0;
-wire [63:0] gt0_txdata_i_pre_shifter1;
 
-
-/*shifter shifter_inst0(
-    .clk(gt0_txusrclk2_i),
-    .bypass(bypass),
-    .din(gt0_txdata_i_pre_shifter0),
-//    .dout(shifter_dout)
-    .dout(gt0_txdata_i_pre_shifter1)
-    );
-shifter shifter_inst1(
-    .clk(gt0_txusrclk2_i),
-    .bypass(bypass),
-    .din(gt0_txdata_i_pre_shifter1),
-//    .dout(shifter_dout)
-    .dout(gt0_txdata_i)
-    );*/
-
-	
-/*PRBS7 #(.WORDWIDTH(64)) prbs1Inst
-    (
-        .clk(gt0_txusrclk2_i),
-        .reset(reset),
-        .dis(1'b0),
-        .seed(seed),
-        .prbs(gt0_txdata_i)
-    ); 
-*/
 PRBS7Check prbs_source_check_inst_0(
   .clk(gt0_txusrclk2_i),
   .din(gt0_txdata_i),
@@ -111,29 +81,13 @@ rev_map rev_map_inst(
     .din(gt0_txdata_i),
     .dout(map_dout)
 );
-//assign bypass = 1'b0;   
+ 
 (* mark_debug = "true" *)
 wire bypass;
 (* mark_debug = "true" *)
 wire     [63:0]  map_dout;
 
-/*diff_out   #(.WORDWIDTH(32)) diff_out_inst1
-    (
-        .sig_in(prbs),
-        .clk(gt0_txusrclk2_i),
-        .sig_out_p(RXP_IN),
-        .sig_out_n(RXN_IN)        
-    );*/
-// ---------------- Instantiate clock module -------------------------------
 
-/*clk_wiz_0 clk_wiz_0_inst_1
-(
-    .clk_out1(clk_wiz_out),     //160 MHz
-    .locked(locked),
-    .reset(reset),
-    .clk_in1_p(USER_SMA_CLOCK_P),
-    .clk_in1_n(USER_SMA_CLOCK_N)
-);*/
 
 //----------------- Instantiate an gtwizard_0_exdes module  -----------------
 //wire gt0_txusrclk2_i;
@@ -176,7 +130,7 @@ dataExtract dataAligner
     .alignAddr(alignAddr),
     .aligned(aligned),
     .errorCounter(errorCounter),
-    .tot_err_count(tot_err_count),
+    .tot_align_err_count(tot_align_err_count),
     .errorFlag(errorFlag),
     .prbs_from_check(prbs_from_check),
     .errorBits(errorBits),
@@ -187,16 +141,7 @@ dataExtract dataAligner
     .usererrorCounter(usererrorCounter),
     .dout(dout)
 );
-/*shifter shifter_inst0(
-    .clk(gt0_rxusrclk2_i),
-    .bypass(bypass),
-    .din(prbs_from_check_test),
-//    .dout(shifter_dout)
-    .dout(prbs_from_check)
 
-    );*/
-
-//assign mask = 16'h0000;
 assign seed = 7'h3F;
 
 
@@ -225,7 +170,7 @@ wire          aligned;
 wire  [6:0]   errorCounter;
 
 (* mark_debug = "true" *)  
-wire  [23:0]    tot_err_count;
+wire  [23:0]    tot_align_err_count;
 
 (* mark_debug = "true" *)
 wire          errorFlag;
@@ -491,20 +436,20 @@ assign SDA = SDA_T ? 1'bz : SDA_OUT;
 //wire [7:0] Rx6_Error_bit_Init = config_reg[9*16+7:9*16];
 //wire [7:0] Tx0_Error_bit_Init = config_reg[9*16+15:9*16+8];
 
-wire [7:0] tot_err_count_Init = config_reg[6*16+7:6*16];
+wire [7:0] tot_align_err_count_Init = config_reg[6*16+7:6*16];
 reg [63:0] Channel_Bit_Error_Output_reg;
 //////////////////TEST///////////////////////////////////////////
 always @ (clk_60MHz)
 begin
-    tot_err_count_test <= tot_err_count_test + 1;
+    tot_align_err_count_test <= tot_align_err_count_test + 1;
 end
-reg [23:0] tot_err_count_test;
+reg [23:0] tot_align_err_count_test;
 /////////////////TEST///////////////////////////////////////////
 
 always @ (channel_select)
 begin
-    Channel_Bit_Error_Output_reg = tot_err_count;
-//    Channel_Bit_Error_Output_reg = tot_err_count_test;
+    Channel_Bit_Error_Output_reg = tot_align_err_count;
+//    Channel_Bit_Error_Output_reg = tot_align_err_count_test;
 
 end
 assign status_reg[79:16] = Channel_Bit_Error_Output_reg;
@@ -523,7 +468,7 @@ assign channel_select = config_reg[2:0];
 //        default: Channel_Bit_Error_Output_reg = Rx0_Error_bit_Count;
 //    endcase
 //end
-//Channel_Bit_Error_Output_reg = tot_err_count + Rx0_Error_bit_Init;
+//Channel_Bit_Error_Output_reg = tot_align_err_count + Rx0_Error_bit_Init;
 
 //---------------------------------------------------------> Rx Bit_error readout
 //---------------------------------------------------------< VIO 
@@ -531,8 +476,12 @@ assign channel_select = config_reg[2:0];
 vio_0 vio_0_inst (
   .clk(clk_60MHz),                // input wire clk
   .probe_out0(mask),  
-  .probe_out1(bypass)
+  .probe_out1(bypass),
+  .probe_out2(SYS_RST)
 );
+
+(* mark_debug = "true" *)
+wire SYS_RST;
 
 //assign mask = 16'h8000;
 //---------------------------------------------------------> VIO 

@@ -110,7 +110,7 @@ module PRBS7Check
 //        userBits <= din ^ {mask, mask, mask, mask};       
 //        userData <= {|userBits[63:56], |userBits[55:48], |userBits[47:40],|userBits[39:32],|userBits[31:24],|userBits[23:16],|userBits[15:8],|userBits[7:0]};
         userData <= {userBits[63], userBits[55] ,userBits[47] , userBits[39], userBits[31], userBits[23], userBits[15], userBits[7]};
-        usererrorBits <= userBits ^ 64'h0000000000000000;
+        usererrorBits <= userBits ^ 64'h0080008000800080;
         
         
         a0[0] <= {5'd0,usererrorBits[0]}+

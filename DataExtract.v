@@ -30,7 +30,7 @@ module dataExtract
 //    output  [9:0]   alignAddr,    //10 bits 
     output          aligned,
     output  [6:0]   errorCounter, 
-    output  [23:0]  tot_err_count,
+    output  [23:0]  tot_align_err_count,
     output          errorFlag,
     output  [63:0]  prbs_from_check, 
     output  [63:0]  errorBits,
@@ -210,13 +210,13 @@ wire [63:0] errorBits;
 
 
 //firsAligned algorithm
-reg [23:0] tot_err_count;
+reg [23:0] tot_align_err_count;
 reg firstAligned;
 always @ (posedge clk)
     if(reset)
     begin
         firstAligned <= 1'b0;
-        tot_err_count <= 24'd0;
+        tot_align_err_count <= 24'd0;
     end
     else 
     begin
@@ -226,7 +226,7 @@ always @ (posedge clk)
     end
     if(firstAligned)
     begin
-        tot_err_count <= tot_err_count +errorCounter;
+        tot_align_err_count <= tot_align_err_count +errorCounter;
     end
 end 
 
