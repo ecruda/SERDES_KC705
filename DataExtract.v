@@ -22,6 +22,7 @@ module dataExtract
     input           bypass,
     input   wire [15:0]  mask,
     input   [6:0]   seed,
+    input   [1:0]   user_mode,
 
 
     output  [3:0]   foundFrames,
@@ -39,6 +40,7 @@ module dataExtract
     output  [63:0]  usererrorBits,
     output  [7:0]   userData,
     output  [6:0]   usererrorCounter,
+    output  [23:0]  tot_user_err_count,
     
     output  [63:0]  dout
 
@@ -115,6 +117,7 @@ assign alignedAddr = alignAddr;
         .mask(mask),
         .reset(reset),
         .seed(seed),
+        .user_mode(user_mode),
       
         .userBits(userBits),
         .usererrorBits(usererrorBits),
@@ -232,12 +235,28 @@ end
 
 //user_data_error_checking algorithm
 
-/*reg [63:0] userdataBits;
+reg [23:0] tot_user_err_count;
+
 always @ (posedge clk)
-   
-    if(aligned == 1'b1 && errorCounter == 7'h00)
-        begin
-            userdataBits <= userBits & {mask,mask,mask,mask};
-        end*/
+    if(reset)
+    begin
+        firstAligned <= 1'b0;
+        tot_user_err_count <= 24'd0;
+    end
+    else 
+    begin
+    if(aligned == 1'b1 && firstAligned ==1'b0)
+    begin
+        firstAligned <= 1'b1;
+    end
+    if(firstAligned)
+    begin
+        tot_user_err_count <= tot_user_err_count + usererrorCounter;
+    end
+end 
+
+wire [1:0] user_mode;
+
+
 
 endmodule

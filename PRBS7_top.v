@@ -123,6 +123,7 @@ dataExtract dataAligner
     .bypass(bypass),
     .mask(mask),
     .seed(seed),
+    .user_mode(user_mode),
 
     //Output
     .foundFrames(foundFrames),
@@ -139,6 +140,7 @@ dataExtract dataAligner
     .userdataBits(userdataBits),
     .userData(userData),
     .usererrorCounter(usererrorCounter),
+    .tot_user_err_count(tot_user_err_count),
     .dout(dout)
 );
 
@@ -192,6 +194,9 @@ wire [6:0]     usererrorCounter;
 
 (* mark_debug = "true" *)
 wire [63:0]   userBits;
+
+(* mark_debug = "true" *)
+wire [23:0] tot_user_err_count;
 
 (* mark_debug = "true" *)
 wire [63:0] dout;
@@ -425,6 +430,8 @@ i2c_wr_bytes i2c_wr_bytes_inst(
 assign SDA = SDA_T ? 1'bz : SDA_OUT;
 //---------------------------------------------------------> IIC
 
+//IIC uses config_reg[89:64]
+
 //---------------------------------------------------------> Rx Bit_error readout
 //wire [2:0]channel_select;
 //wire [7:0] Rx0_Error_bit_Init = config_reg[6*16+7:6*16];
@@ -436,8 +443,14 @@ assign SDA = SDA_T ? 1'bz : SDA_OUT;
 //wire [7:0] Rx6_Error_bit_Init = config_reg[9*16+7:9*16];
 //wire [7:0] Tx0_Error_bit_Init = config_reg[9*16+15:9*16+8];
 
+//error bit init uses config reg[159:96]
+
 wire [7:0] tot_align_err_count_Init = config_reg[6*16+7:6*16];
-reg [63:0] Channel_Bit_Error_Output_reg;
+reg [23:0] eth_tot_align_err_count;
+reg [23:0] eth_tot_user_err_count;
+reg [6:0] eth_err_count;
+reg eth_aligned;
+reg [7:0] eth_userData;
 //////////////////TEST///////////////////////////////////////////
 always @ (clk_60MHz)
 begin
@@ -448,11 +461,26 @@ reg [23:0] tot_align_err_count_test;
 
 always @ (channel_select)
 begin
-    Channel_Bit_Error_Output_reg = tot_align_err_count;
+    eth_err_count = errorCounter;
+    eth_tot_align_err_count = tot_align_err_count;
+    eth_tot_user_err_count = tot_user_err_count;
+    eth_aligned = aligned;
+    eth_userData= userData;
 //    Channel_Bit_Error_Output_reg = tot_align_err_count_test;
 
 end
-assign status_reg[79:16] = Channel_Bit_Error_Output_reg;
+//assign status_reg[79:16] = Channel_Bit_Error_Output_reg;
+
+//total registers is 11, starts from reg(0), but i2c is over reg(0), do not use it
+
+assign status_reg[47:16] = eth_tot_align_err_count;  //on eth python program: reg 1&2
+assign status_reg[79:48] = eth_tot_user_err_count;   //on eth python program: reg 3&4
+assign status_reg[95:80] = eth_err_count;   //on eth python program: reg 5
+assign status_reg[111:96] = eth_aligned;   //on eth python program: reg 6
+assign status_reg[127:112] = eth_userData;   //on eth python program: reg 7
+
+
+
 assign channel_select = config_reg[2:0];
 //always @(channel_select)
 //begin
@@ -477,11 +505,15 @@ vio_0 vio_0_inst (
   .clk(clk_60MHz),                // input wire clk
   .probe_out0(mask),  
   .probe_out1(bypass),
-  .probe_out2(SYS_RST)
+  .probe_out2(SYS_RST),
+  .probe_out3(user_mode)
 );
 
 (* mark_debug = "true" *)
 wire SYS_RST;
+
+(* mark_debug = "true" *)
+wire [1:0] user_mode;
 
 //assign mask = 16'h8000;
 //---------------------------------------------------------> VIO 

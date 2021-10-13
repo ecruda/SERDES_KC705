@@ -21,6 +21,7 @@ module PRBS7Check
     input       wire    [15:0]      mask,
     input                       reset,
     input           [6:0]       seed,
+    input           [1:0]       user_mode,
 
     output         [63:0]       prbs,
     output          [63:0]      errorBits,
@@ -110,8 +111,27 @@ module PRBS7Check
 //        userBits <= din ^ {mask, mask, mask, mask};       
 //        userData <= {|userBits[63:56], |userBits[55:48], |userBits[47:40],|userBits[39:32],|userBits[31:24],|userBits[23:16],|userBits[15:8],|userBits[7:0]};
         userData <= {userBits[63], userBits[55] ,userBits[47] , userBits[39], userBits[31], userBits[23], userBits[15], userBits[7]};
-        usererrorBits <= userBits ^ 64'h0080008000800080;
+
+
+        case(user_mode)
+         2'b00://loopback mode
+         usererrorBits <= userBits ^ 64'h0080008000800080;   //use for userdata = 55
+         
+         2'b01://internal prbs mode
+         usererrorBits <= userBits ^ 64'h0000000000000000; //use for userdata = 00
+         
+         2'b10://internal prbs w/ user data = 55
+         usererrorBits <= userBits ^ 64'h0080008000800080;   //use for userdata = 55
+
+         2'b11://internal prbs w/user data = prbs;
+         usererrorBits <= userBits ^ 64'h0000000000000000; //use for userdata = 00
+    
+
+    endcase
+ 
+      
         
+           
         
         a0[0] <= {5'd0,usererrorBits[0]}+
                  {5'd0,usererrorBits[1]}+
@@ -320,4 +340,10 @@ module PRBS7Check
                             {5'd0,errorBits[30]}+
                             {5'd0,errorBits[31]};
 */
+
+    wire [1:0] user_mode;
+    
+    
+    
+    
 endmodule
